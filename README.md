@@ -6,6 +6,7 @@ ARES X 向けに、Infineon 部品を中心とした PDU と CAN アームアク
 
 - `docs/pdu/`: マキタ 18V バッテリー 2 本を入力とする PDU の要件整理と部品選定
 - `docs/arm_actuator/`: CAN 接続アームアクチュエータの要件整理と部品選定
+- `docs/mini_pc_poe/`: 別系統マキタ 18V バッテリーから Mini PC 19V/5A と 24V Passive PoE を常時給電する基板の要件整理と部品選定
 - `bom/`: PDU、アームアクチュエータ、統合構成の CSV BOM
 
 ## 方針
