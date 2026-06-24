@@ -1,6 +1,7 @@
 # Infineon CAN アームアクチュエータ部品選定整理
 
 作成日: 2026-06-18  
+更新日: 2026-06-23
 入力: [requirements.md](./requirements.md)
 
 ## 1. 選定方針
@@ -11,6 +12,7 @@
 - モータドライバ、パワー MOSFET、CAN、角度センサ、電流センサ、電源監視は Infineon 部品を基本とする。
 - STM32 MCU、コネクタ、ヒューズ、受動部品、BLDC モータ、サイクロイド減速機、機械部品は Infineon 縛りの対象外とする。
 - 初期試作では RoboMaster M3508 クラスの 24V BLDC モータと 1:120 サイクロイド減速機を基準にする。ただし、軸ごとの連続電流、ピーク電流、保持トルク、放熱条件が未確定のため、高電流部品は暫定選定とする。
+- 2026-06-23 に `dktools` で Digi-Key 取扱、Active 状態、在庫の有無を確認した。Digi-Key 発注に使える品番があるものは、短縮名ではなく発注可能な MPN を優先して記載する。
 - EOL、Not for new design、用途に対して不適切な候補は部品候補から外し、この文書には残さない。
 
 ## 2. 要件から見た構成
@@ -57,9 +59,9 @@ STM32 MCU
 
 | 項目 | 選定 |
 | --- | --- |
-| ゲートドライバ | `6EDL7141` |
+| ゲートドライバ | `6EDL7141XUMA1` (`6EDL7141`) |
 | ゲートドライバ数量目安 | 1 個 / 駆動軸 |
-| パワー MOSFET | `BSC012N06NS` |
+| パワー MOSFET | `BSC012N06NSATMA1` (`BSC012N06NS`) |
 | MOSFET 数量目安 | 6 個。高負荷軸では 12 個を暫定上限として検討 |
 | 担当機能 | 三相 BLDC/PMSM インバータ駆動、ゲート駆動設定、保護、fault 通知、SPI 設定 |
 | 採用理由 | `6EDL7141` はバッテリー駆動 BLDC/PMSM 向けの 3 相スマートゲートドライバで、SPI による設定と fault 読み出しができる。`BSC012N06NS` は 60V 低 Rds(on) MOSFET で、24V 系 M3508 クラス BLDC インバータに十分な耐圧余裕を持たせやすい。 |
@@ -70,6 +72,7 @@ STM32 MCU
 - 第一関節や肩関節など高負荷軸では、各スイッチ 2 並列の 12 MOSFET 構成、放熱強化、または基板派生を検討する。
 - `6EDL7141` の SPI 設定値は、PWM 周波数、ゲート抵抗、MOSFET、シャント抵抗、過電流閾値、デッドタイムを実機評価で決める。
 - PWM 方式はセンサ付き FOC を前提にし、初期から三相電流計測と出力軸エンコーダ読み出しを入れる。
+- `6EDL7141XUMA1` と `BSC012N06NSATMA1` は、2026-06-23 時点で Active / Digi-Key 在庫ありを確認済み。
 
 注意点:
 
@@ -82,14 +85,15 @@ STM32 MCU
 | 測定箇所 | 選定 | 数量目安 | 理由 |
 | --- | --- | ---: | --- |
 | 三相電流 | `TBD_PHASE_SHUNT` | 3 | センサ付き FOC の相電流計測と電流制御に使う |
-| 低〜中電流 DC bus | `TLE4971-A025T5-E0001` | 0 から 1 | 25A 級の独立電流ログ、過電流検出に向く |
-| 高電流 DC bus | `TLE4973-A075T5-S0001` | 0 から 1 | 高負荷軸で ±82A レンジの余裕を持たせる |
+| 低〜中電流 DC bus | `TLE4971A025N5UE0001XUMA1` (`TLE4971-A025N5-E0001`) | 0 から 1 | 25A 級の独立電流ログ、過電流検出に向く |
+| 高電流 DC bus | `TLE4973A075T5S0001XUMA1` (`TLE4973-A075T5-S0001`) | 0 から 1 | 高負荷軸で ±82A レンジの余裕を持たせる |
 
 採用理由:
 
 - センサ付き FOC では PWM と同期した相電流計測が必要になるため、三相シャントを置く。
 - TLE4971/TLE4973 系は coreless current sensor として DC bus の独立電流監視、ログ、保護閾値の確認に併用する。
 - 低負荷軸は 25A 級、高負荷軸は 75A/82A 級へ分けると、測定分解能とピーク余裕を両立しやすい。
+- `TLE4971A025N5UE0001XUMA1` と `TLE4973A075T5S0001XUMA1` は Infineon 公式サイトで確認済み。
 
 注意点:
 
@@ -101,7 +105,7 @@ STM32 MCU
 
 | 項目 | 選定 |
 | --- | --- |
-| 主候補 | `TLE5012B-E1000` |
+| 主候補 | `TLE5012BE1000XUMA1` (`TLE5012B-E1000`) |
 | 数量目安 | 1 個 / 駆動軸 |
 | 担当機能 | 出力軸の絶対角取得、位置制御、速度推定、原点確認、角度異常検出 |
 | 採用理由 | `TLE5012B` 系は 360 deg 磁気角度センサで、SPI 互換の SSC インターフェースと診断機能を持つため、関節出力軸の絶対角センサに使いやすい。 |
@@ -116,12 +120,13 @@ STM32 MCU
 
 - 磁石の芯ずれ、距離、傾き、固定方法が角度精度に直結するため、機械設計側でセンサ座面と磁石保持を決める。
 - 角度ジャンプ、通信異常、診断エラーは `FAULT` 条件に含める。
+- `TLE5012BE1000XUMA1` は、2026-06-23 時点で Active / Digi-Key 在庫ありを確認済み。
 
 ### 3.5 CAN
 
 | 項目 | 選定 |
 | --- | --- |
-| 主 IC | `TLE9371VSJ` |
+| 主 IC | `TLE9371VSJXTMA1` (`TLE9371VSJ`) |
 | 数量目安 | 1 個 / 駆動軸 |
 | 担当機能 | CAN 1Mbps 初期対応、将来の CAN FD 対応、上位ノードとの通信 |
 | 採用理由 | `TLE9371VSJ` は CAN FD SIC transceiver で、初期の CAN 2.0 / 1Mbps に対して余裕があり、将来 CAN FD へ拡張しやすい。 |
@@ -132,12 +137,13 @@ STM32 MCU
 - TVS、コモンモードチョーク、GND、シールド、コネクタピン配置はローバー全体の CAN 配線ルールと揃える。
 - Node ID は関節位置または駆動軸に対応する固定 ID とし、同一 bus 上で衝突しないようにする。
 - テレメトリ周期は初期値 10 ms から 50 ms 程度で始める。
+- `TLE9371VSJXTMA1` は、2026-06-23 時点で Active / Digi-Key 在庫ありを確認済み。
 
 ### 3.6 常時電源・監視電源
 
 | 項目 | 選定 |
 | --- | --- |
-| 主候補 | `TLF35584QKVS2` |
+| 主候補 | `TLF35584QKVS2XUMA2` (`TLF35584QKVS2`) |
 | 数量目安 | 1 個 / 駆動軸 |
 | 担当機能 | STM32 用 3.3V、CAN/センサ用 5V または 3.3V、ウォッチドッグ、リセット監視 |
 | 採用理由 | `TLF35584QKVS2` は安全系用途向けの複数出力 PMIC で、MCU 電源、トランシーバ/センサ電源、ウォッチドッグ、リセット監視をまとめやすい。 |
@@ -147,6 +153,7 @@ STM32 MCU
 - `6EDL7141` にもレギュレータ機能があるため、初期試作では「6EDL7141 周辺電源を活用する簡略構成」と「TLF35584 を使う監視重視構成」を比較する。
 - TLF35584 は高機能なぶん、SPI 設定や起動シーケンスが増える。小型・低コストを優先する関節では、別の 3.3V/5V レギュレータ + 外付けウォッチドッグの構成も検討余地がある。
 - PDU 側のアーム 24V が OFF になった場合の MCU ログ保持や fault 送信をどう扱うかは、上位システム設計で決める。
+- `TLF35584QKVS2XUMA2` は、2026-06-23 時点で Active / Digi-Key 在庫ありを確認済み。
 
 ### 3.7 電圧・温度監視
 
@@ -201,14 +208,14 @@ STM32 MCU
 | ブロック | 品番 | 数量目安 | メモ |
 | --- | --- | ---: | --- |
 | MCU | `STM32G474RET6` | 1 | 型番は IO 数に応じて変更可 |
-| 3-phase Gate Driver | `6EDL7141` | 1 | SPI 設定/fault 読み出し |
-| Power MOSFET | `BSC012N06NS` | 6 から 12 | 6 個で標準、12 個で高電流派生 |
+| 3-phase Gate Driver | `6EDL7141XUMA1` | 1 | Active / Digi-Key 在庫あり。SPI 設定/fault 読み出し |
+| Power MOSFET | `BSC012N06NSATMA1` | 6 から 12 | Active / Digi-Key 在庫あり。6 個で標準、12 個で高電流派生 |
 | Phase Current Sense | `TBD_PHASE_SHUNT` | 3 | センサ付き FOC 用 |
-| DC Bus Current Sensor | `TLE4971-A025T5-E0001` | 0 から 1 | 低〜中電流軸の保護・ログ用 |
-| High Current Sensor | `TLE4973-A075T5-S0001` | 0 から 1 | 高負荷軸の保護・ログ用 |
-| Angle Sensor | `TLE5012B-E1000` | 1 | 出力軸絶対角を優先 |
-| CAN | `TLE9371VSJ` | 1 | CAN 1Mbps、将来 CAN FD |
-| Housekeeping | `TLF35584QKVS2` | 1 | 監視重視構成。簡略構成では再検討可 |
+| DC Bus Current Sensor | `TLE4971A025N5UE0001XUMA1` | 0 から 1 | Active / Digi-Key 在庫あり。低〜中電流軸の保護・ログ用 |
+| High Current Sensor | `TLE4973A075T5S0001XUMA1` | 0 から 1 | Infineon 公式確認済み。高負荷軸の保護・ログ用 |
+| Angle Sensor | `TLE5012BE1000XUMA1` | 1 | Active / Digi-Key 在庫あり。出力軸絶対角を優先 |
+| CAN | `TLE9371VSJXTMA1` | 1 | Active / Digi-Key 在庫あり。CAN 1Mbps、将来 CAN FD |
+| Housekeeping | `TLF35584QKVS2XUMA2` | 1 | Active / Digi-Key 在庫あり。監視重視構成。簡略構成では再検討可 |
 | FET Temperature | `TBD_NTC_FET` | 1 | MOSFET 近傍 |
 | Motor Temperature | `TBD_NTC_MOTOR` | 1 | モータケースまたは巻線 |
 | Voltage Sense | `TBD_BUS_VSENSE` | 1 set | 24V bus ADC 測定 |
@@ -230,12 +237,12 @@ STM32 MCU
 
 - STM32G474RE: <https://www.st.com/en/microcontrollers-microprocessors/stm32g474re.html>
 - STM32G4 Series: <https://www.st.com/en/microcontrollers-microprocessors/stm32g4-series.html>
-- 6EDL7141: <https://www.infineon.com/part/6EDL7141>
+- 6EDL7141XUMA1 / 6EDL7141: <https://www.infineon.com/part/6EDL7141>
 - EVAL_6EDL7141_1KW_36V: <https://www.infineon.com/evaluation-board/EVAL-6EDL7141-1KW-36V>
 - EVAL_6EDL7141_FOC_3SH: <https://www.infineon.com/evaluation-board/EVAL-6EDL7141-FOC-3SH>
-- BSC012N06NS: <https://www.infineon.com/part/BSC012N06NS>
-- TLE5012B-E1000: <https://www.infineon.com/part/TLE5012B-E1000>
-- TLE9371VSJ: <https://www.infineon.com/part/TLE9371VSJ>
-- TLF35584QKVS2: <https://www.infineon.com/part/TLF35584QKVS2>
-- TLE4971-A025T5-E0001: <https://www.infineon.com/part/TLE4971-A025T5-E0001>
-- TLE4973-A075T5-S0001: <https://www.infineon.com/part/TLE4973-A075T5-S0001>
+- BSC012N06NSATMA1 / BSC012N06NS: <https://www.infineon.com/part/BSC012N06NS>
+- TLE5012BE1000XUMA1 / TLE5012B-E1000: <https://www.infineon.com/part/TLE5012B-E1000>
+- TLE9371VSJXTMA1 / TLE9371VSJ: <https://www.infineon.com/part/TLE9371VSJ>
+- TLF35584QKVS2XUMA2 / TLF35584QKVS2: <https://www.infineon.com/part/TLF35584QKVS2>
+- TLE4971A025N5UE0001XUMA1 / TLE4971-A025N5-E0001: <https://www.infineon.com/part/TLE4971-A025N5-E0001>
+- TLE4973A075T5S0001XUMA1 / TLE4973-A075T5-S0001: <https://www.infineon.com/part/TLE4973-A075T5-S0001>
