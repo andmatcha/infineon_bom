@@ -1,7 +1,7 @@
 # Mini PC / Wi-Fi アンテナ電源基板 部品選定整理
 
 作成日: 2026-06-18  
-更新日: 2026-06-23
+更新日: 2026-06-26
 入力: [requirements.md](./requirements.md)
 
 ## 1. 選定方針
@@ -9,7 +9,7 @@
 - [requirements.md](./requirements.md) を正とし、現時点で決まっている要件を前提に部品を選定する。
 - 2026-06-23 の要件変更により、入力は PDU の保護済み常時給電枝から受ける構成へ変更された。別系統のマキタ 18V バッテリー、15V から 21V 入力範囲、19V buck-boost 固定、24V boost 固定という旧前提は現行要件として使わない。
 - 本文中の DC/DC、保護 IC、ヒューズ、BOM 候補は、PDU 側の 40V バッテリー 2 個の合成方式と常時給電枝入力範囲、Wi-Fi アンテナモジュールの実機仕様が確定するまで暫定候補として扱う。
-- 2026-06-23 に `dktools` で Digi-Key 取扱、Active 状態、在庫の有無を確認した。Digi-Key 発注に使える品番があるものは、短縮名ではなく発注可能な MPN を優先して記載する。
+- 2026-06-26 に `dktools` で Digi-Key 取扱、Active 状態、在庫の有無を再確認した。Digi-Key 発注に使える品番があるものは、短縮名ではなく発注可能な MPN を優先して記載する。Infineon 部品は、Digi-Key 在庫がない場合でも Infineon 公式サイトで確認できれば採用候補として維持する。
 - CSV 形式の BOM は [../../bom/mini_pc_poe_bom.csv](../../bom/mini_pc_poe_bom.csv) に分ける。
 - Infineon 製品のみを統合した BOM は [../../bom/infineon_integrated_bom.csv](../../bom/infineon_integrated_bom.csv) に分ける。
 - 電源保護、出力スイッチ、パワー MOSFET は Infineon を基本候補とする。
@@ -62,7 +62,7 @@ Data In RJ45
 - `XDP711-001` は +80V までの候補であるため、PDU 側で 40V バッテリー 2 個を直列扱いする場合や過渡電圧が大きい場合は耐圧余裕を再評価する。
 - XDP711 の PMBus を初期試作で使わない場合でも、SDA/SCL/ALERT/test point を出しておくと低電圧予告や故障ログへ拡張しやすい。
 - 低コスト試作では、XDP711 を省いた fuse + TVS + 逆接保護 MOSFET 構成も可能だが、最終候補は入力保護と突入制御を持つ構成とする。
-- `XDP711001XUMA1` と `ISC035N10NM5LF2ATMA1` は Infineon 公式サイトで確認済みのため、Digi-Key 在庫がなくても採用候補として維持する。調達経路、入力コネクタ、ヒューズ定格は設計段階で別途確認する。
+- `XDP711001XUMA1` と `ISC035N10NM5LF2ATMA1` は Infineon 公式サイトで確認済みのため、Digi-Key 在庫がなくても採用候補として維持する。2026-06-26 時点の Digi-Key ではどちらも Active だが在庫 0 であるため、調達経路、入力コネクタ、ヒューズ定格は設計段階で別途確認する。
 
 ### 3.2 Mini PC 19V/5A DC/DC
 
@@ -75,13 +75,13 @@ Data In RJ45
 | 出力スイッチ | `BTT60201ERAXUMA1` (`BTT6020-1ERA`) |
 | 出力スイッチ数量目安 | 1 個 |
 | 担当機能 | PDU 常時給電枝から基板定格 19V/5A を生成し、実機定格 19V/3.42A の Mini PC へ E-Stop 対象外で常時給電する |
-| 採用理由 | `LM5146QRGYRQ1` は 5.5V から 100V 入力の同期 buck controller で、40V バッテリー x2 系の常時給電枝から 19V を生成する用途に合う。2026-06-23 時点で Digi-Key Active / 在庫ありを確認済み。 |
+| 採用理由 | `LM5146QRGYRQ1` は 5.5V から 100V 入力の同期 buck controller で、40V バッテリー x2 系の常時給電枝から 19V を生成する用途に合う。2026-06-26 時点で Digi-Key Active / 在庫 4932 を確認済み。 |
 
 設計メモ:
 
 - 19V/5A は 95W である。実接続 Mini PC は 19V/3.42A (64.98W) だが、電源設計は 5A 余裕を残す。
 - `LM5146RGYR` は非 Q1 の低コスト代替候補である。
-- 外付け MOSFET は 100V クラスを基本とする。Infineon 候補の `ISC022N10NM6ATMA1` は Active だが、2026-06-23 時点の Digi-Key 在庫は 0 である。
+- 外付け MOSFET は 100V クラスを基本とする。Infineon 候補の `ISC022N10NM6ATMA1` は Active だが、2026-06-26 時点の Digi-Key 在庫は 0 である。
 - 常時給電枝の最大サージ電圧を 60V 以下に制限できる場合のみ、`BSC012N06NSATMA1` など 60V MOSFET も評価対象にできる。
 - `BTT60201ERAXUMA1` は 20mOhm の 24V 系 smart high-side switch で、Mini PC 出力の保護、診断、fault 表示に使う。5A 連続では約 0.5W 級の導通損失が出るため、銅箔放熱を必ず確認する。
 
@@ -97,7 +97,7 @@ Data In RJ45
 | 出力スイッチ数量目安 | 1 個 |
 | 出力ヒューズ/保護 | `TBD_POE_PTC_0P75A` または同等の fuse/PTC |
 | 担当機能 | PDU 常時給電枝から Wi-Fi アンテナモジュール用の 24V/0.5A 候補出力を生成する |
-| 採用理由 | `LM5164DDAR` は 6V から 100V 入力、1A クラスの synchronous buck regulator で、40V バッテリー x2 系の常時給電枝から 24V/0.5A を直接生成できる。2026-06-23 時点で Digi-Key Active / 在庫ありを確認済み。 |
+| 採用理由 | `LM5164DDAR` は 6V から 100V 入力、1A クラスの synchronous buck regulator で、40V バッテリー x2 系の常時給電枝から 24V/0.5A を直接生成できる。2026-06-26 時点で Digi-Key Active / 在庫 10195 を確認済み。 |
 
 設計メモ:
 
@@ -164,15 +164,15 @@ Pinout:
 
 | ブロック | 品番 | 数量目安 | メモ |
 | --- | --- | ---: | --- |
-| Battery Input | `XDP711001XUMA1` | 1 | Infineon 公式確認済み。入力保護、突入制限、UVLO、telemetry 拡張 |
-| Battery Input FET | `ISC035N10NM5LF2ATMA1` | 2 から 4 | Infineon 公式確認済み。back-to-back と SOA 余裕で変動 |
-| 19V DC/DC Controller | `LM5146QRGYRQ1` | 1 | Active / Digi-Key 在庫あり。100V クラス同期 buck |
+| Battery Input | `XDP711001XUMA1` | 1 | Infineon 公式確認済み。Digi-Key Active / 在庫 0。入力保護、突入制限、UVLO、telemetry 拡張 |
+| Battery Input FET | `ISC035N10NM5LF2ATMA1` | 2 から 4 | Infineon 公式確認済み。Digi-Key Active / 在庫 0。back-to-back と SOA 余裕で変動 |
+| 19V DC/DC Controller | `LM5146QRGYRQ1` | 1 | Active / Digi-Key 在庫 4932。100V クラス同期 buck |
 | 19V Power MOSFET | `TBD_100V_SYNC_BUCK_MOSFET` | 2 | 入力サージ上限と熱設計確定後に選定 |
-| 19V Output Switch | `BTT60201ERAXUMA1` | 1 | Active / Digi-Key 在庫あり。5A 連続の熱設計が必要 |
-| 24V DC/DC Regulator | `LM5164DDAR` | 1 | Active / Digi-Key 在庫あり。100V / 1A 同期 buck |
-| 24V Output Switch | `BTT60302ERAXUMA1` | 1 | Active / Digi-Key 在庫あり。PoE 出力。別途 fuse/PTC を併用 |
-| RJ45 Jack | `615008137421` | 2 | Data In / PoE Out |
-| Ethernet ESD | `TPD4E05U06DQAR` | 1 | 1,2,3,6 の 4 線用 |
+| 19V Output Switch | `BTT60201ERAXUMA1` | 1 | Active / Digi-Key 在庫 6737。5A 連続の熱設計が必要 |
+| 24V DC/DC Regulator | `LM5164DDAR` | 1 | Active / Digi-Key 在庫 10195。100V / 1A 同期 buck |
+| 24V Output Switch | `BTT60302ERAXUMA1` | 1 | Active / Digi-Key 在庫 5370。PoE 出力。別途 fuse/PTC を併用 |
+| RJ45 Jack | `615008137421` | 2 | Active / Digi-Key 在庫 216。Data In / PoE Out |
+| Ethernet ESD | `TPD4E05U06DQAR` | 1 | Active / Digi-Key 在庫 240460。1,2,3,6 の 4 線用 |
 | Input Fuse | `TBD_INPUT_FUSE` | 1 | PDU 常時給電枝と協調 |
 | PoE Fuse/PTC | `TBD_POE_PTC_0P75A` | 1 | 0.75A から 1A 級で要確認 |
 | Input Connector | `TBD_ALWAYS_ON_INPUT_CONNECTOR` | 1 | PDU 常時給電枝から受電 |
@@ -189,7 +189,7 @@ Pinout:
 - Ethernet は 100Mbps 固定とする。1000BASE-T が必要になった場合、この RJ45 pinout は使えないため、IEEE PoE PSE、別電源線、または 4-pair 対応の設計へ切り替える。
 - RJ45 シールドは 0ohm、RC、DNP を選べるフットプリントを用意し、ローバー全体のシャーシ/GND 方針で実装を決める。
 - 初期試作では Mini PC へのシャットダウン通知やバッテリー残量通知は実装せず、常時給電のみとする。
-- `ISC022N10NM6ATMA1` は Mini PC 19V buck の外付け FET 候補として流用できる。ただし 2026-06-23 時点の Digi-Key 在庫は 0 であり、入力サージ、放熱、Rds(on)、ゲート電荷で最終選定する。
+- `ISC022N10NM6ATMA1` は Mini PC 19V buck の外付け FET 候補として流用できる。ただし 2026-06-26 時点の Digi-Key 在庫は 0 であり、入力サージ、放熱、Rds(on)、ゲート電荷で最終選定する。
 
 ## 6. 公式参考資料
 
